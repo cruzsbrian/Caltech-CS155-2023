@@ -66,56 +66,61 @@ Answer each of the following problems with 1-2 short sentences.
   What is a hypothesis set?
 \end{problem}
 \begin{solution}
-  
+  The set of functions that our training algorithm can produce as output.
 \end{solution}
 
 \begin{problem}[2]
   What is the hypothesis set of a linear model?
 \end{problem}
 \begin{solution}
-  
+  The set of all possible linear functions of inputs.
+  For example $f(x_1, x_2, \dots) = w_0 + w_1 x_1 + w_2 x_2 + \dots$ where $x_i$ are the inputs and $w_i$ are arbitrary constants.
 \end{solution}
 
 \begin{problem}[2]
   What is overfitting?
 \end{problem}
 \begin{solution}
-  
+  Overfitting occurs when out-of-sample error increases while in-sample error decreases, usually when too few samples are used relative to the size of the hypothesis set.
 \end{solution}
 
 \begin{problem}[2]
   What are two ways to prevent overfitting?
 \end{problem}
 \begin{solution}
-  
+  Use more training samples, or restrict the hypothesis set (for example by using regularization).
 \end{solution}
 
 \begin{problem}[2]
   What are training data and test data, and how are they used differently? Why should you never change your model based on information from test data?
 \end{problem}
 \begin{solution}
-  
+  Training data is used to produce/pick a hypothesis, and test data is used to evaluate the hypothesis.
+  You shouldn't change your model based on test data because the purpose of testing is to estimate performance outside the training set, and testing on data used in training would not be representative of that.
 \end{solution}
 
 \begin{problem}[2]
   What are the two assumptions we make about how our dataset is sampled?
 \end{problem}
 \begin{solution}
-  
+  We assume that our dataset (training and test) is sampled identically and independently from the same distribution of inputs we will see in the real world.
 \end{solution}
 
 \begin{problem}[2]
   Consider the machine learning problem of deciding whether or not an email is spam. What could $X$, the input space, be? What could $Y$, the output space, be?
 \end{problem}
 \begin{solution}
-  
+  The input space could be a "bag of words" vector, with a 0 or 1 indicating whether or not each word in the dictionary appears in the email.
+  The output space could be real numbers from 0 to 1 indicating probability that the email is spam.
 \end{solution}
 
 \begin{problem}[2]
   What is the $k$-fold cross-validation procedure?
 \end{problem}
 \begin{solution}
-  
+  Divide the training/test data into $k$ sections.
+  Train $k$ models, where the $i$-th model trains on every section but $i$ and tests on $i$.
+  This allows us to effectively use all of our data for testing while avoiding the problem of training on test data.
 \end{solution}
 
 
@@ -143,7 +148,20 @@ Answer each of the following problems with 1-2 short sentences.
 \end{problem}
 
 \begin{solution}
-  
+  \begin{align*}
+    \Bias(x) &= (F(x) - y(x))^2 = F(x)^2 - 2 F(x) y(x) + y(x)^2 \\
+    \Var(x) &= \E_S\left[(f_S(x)-F(x))^2\right] = \E_S \left[ f_S(x)^2 \right] - F(x)^2
+  \end{align*}
+  \begin{align*}
+    \E_S \left[ E_\text{out}(f_S) \right]
+      &= \E_S \left[ \E_x \left[\left(f_S(x) - y(x)\right)^2\right] \right] \\
+      &= \E_x \left[ \E_S \left[\left(f_S(x) - y(x)\right)^2\right] \right] \\
+      &= \E_x \left[ \E_S \left[ f_S(x)^2 - 2 f_S(x) y(x) + y(x)^2 \right] \right] \\
+      &= \E_x \left[ \E_S \left[ f_S(x)^2 \right] - 2 \E_S \left[ f_S(x) \right] y(x) + y(x)^2 \right] \\
+      &= \E_x \left[ \E_S \left[ f_S(x)^2 \right] - 2 F(x) y(x) + y(x)^2 \right] \\
+      &= \E_x \left[ \E_S \left[ f_S(x)^2 \right] - F(x)^2 + F(x)^2 - 2 F(x) y(x) + y(x)^2 \right] \\
+      &= \E_x \left[ \Var(x) + \Bias(x) \right]
+  \end{align*}
 \end{solution}
 
 In the following problems you will explore the bias-variance tradeoff by producing learning curves for polynomial regression models.
@@ -173,41 +191,46 @@ The dataset \texttt{bv_data.csv} is provided and has a header denoting which col
 
 \end{problem}
 \begin{solution}
-  \end{solution}
 
+  \includegraphics[height=5cm]{images/2b_deg1.png}
+  \includegraphics[height=5cm]{images/2b_deg2.png}
+
+  \includegraphics[height=5cm]{images/2b_deg6.png}
+  \includegraphics[height=5cm]{images/2b_deg12.png}
+\end{solution}
 \begin{problem}[3]
   Based on the learning curves, which polynomial regression model (i.e. which degree polynomial) has the highest bias? How can you tell?
 \end{problem}
 \begin{solution}
-
+  The 1st degree polynomial because its validation error is the largest for large $N$.
 \end{solution}
 
 \begin{problem}[3]
   Which model has the highest variance? How can you tell?
 \end{problem}
 \begin{solution}
-  
+  The 12th degree polynomial, because its training error is the most different from its validation error.
 \end{solution}
 
 \begin{problem}[3]
   What does the learning curve of the quadratic model tell you about how much the model will improve if we had additional training points?
 \end{problem}
 \begin{solution}
-
+  The training error and validation error are already close together and flat at $N = 100$, so additional training points probably won't help.
 \end{solution}
 
 \begin{problem}[3]
   Why is training error generally lower than validation error?
 \end{problem}
 \begin{solution}
-  
+  The learning algorithm optimizes to make training error as low as possible, but it doesn't optimize for validation error directly since validation is done with different data.
 \end{solution}
 
 \begin{problem}[3]
   Based on the learning curves, which model would you expect to perform best on some unseen data drawn from the same distribution as the training data, and why?
 \end{problem}
 \begin{solution}
-  
+  The 6th degree polynomial (with $N = 100$), since it has the lowest validation error.
 \end{solution}
 
 

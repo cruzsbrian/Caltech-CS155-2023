@@ -53,6 +53,7 @@
 \newcommand{\Bias}{\operatorname{Bias}}
 \DeclareMathOperator{\argmin}{arg\,min}
 \DeclareMathOperator{\argmax}{arg\,max}
+\DeclareMathOperator{\sign}{sign}
 
 % Do not number subsections and below.
 \setcounter{secnumdepth}{1}
@@ -175,7 +176,7 @@ Performing gradient descent on any of these loss functions will train a model to
 Squared loss is often a terrible choice of loss function to train on for classification problems.  Why?
 
 \begin{solution}
-
+  In classification, we only care that points are on the correct "side" of a dividing hyper-plane, but squared loss penalizes points based on distance to the target symmetrically, so points that are "too far" on the correct side of the hyper-plane will contribute to loss when they shouldn't.
 \end{solution}
 
 \problem[9]
@@ -191,7 +192,13 @@ For each loss function/model, plot the data points as a scatter plot and overlay
 What differences do you see in the decision boundaries learned using the different loss functions? Provide a qualitative explanation for this behavior.
 
 \begin{solution}
+  \href{https://colab.research.google.com/drive/1u0q_P7XAgEKZ5jyB4yfnPg_flSxkUmv1?usp=sharing}{Colab notebook}
 
+  \includegraphics[width=0.4\textwidth]{images/1b_logreg.png}
+  \includegraphics[width=0.4\textwidth]{images/1b_ridge.png}
+
+  The logistic regression separated the data correctly, while the ridge regression's boundary falls within the blob of red points.
+  As explained in 1A, this is because the red points that are far from the boundary contribute to loss which "pulls" the boundary toward them.
 \end{solution}
 
 \problem[9]
@@ -200,7 +207,7 @@ Leaving squared loss behind, let's focus on log loss and hinge loss. Consider th
 Given a linear model with weights $w_0 = 0, w_1 = 1, w_2 = 0$ (where $w_0$ corresponds to the bias term), derive the gradients $\nabla_{w}L_{\text{hinge}}$ and $\nabla_{w}L_{\text{log}}$ of the hinge loss and log loss, and calculate their values for each point in S.
 
 \begin{center}
-  \includegraphics[width=.8\textwidth]{./plots/SimpleDatasetWithDecisionBoundary.png}
+  \includegraphics[width=.8\textwidth]{./images/SimpleDatasetWithDecisionBoundary.png}
 \end{center}
 \begin{small}
   The example dataset and decision boundary described above. Positive instances are
@@ -208,14 +215,44 @@ Given a linear model with weights $w_0 = 0, w_1 = 1, w_2 = 0$ (where $w_0$ corre
 \end{small}
 
 \begin{solution}
+  \begin{align*}
+    L_\text{log} &= \ln( 1 + e^{-y(w_0 + w_1 x_1 + w_2 x_2)} ) \\
+    L_\text{hinge} &= \max( 0, 1 - y(w_0 + w_1 x_1 + w_2 x_2) )
+  \end{align*}
+  \begin{align*}
+    \partial_{w_0} L_\text{log} &= \frac{ -y e^{-y(w_0 + w_1 x_1 + w_2 x_2)} }{ 1 + e^{-y(w_0 + w_1 x_1 + w_2 x_2)} } \\
+    \partial_{w_1} L_\text{log} &= \frac{ -y x_1 e^{-y(w_0 + w_1 x_1 + w_2 x_2)} }{ 1 + e^{-y(w_0 + w_1 x_1 + w_2 x_2)} } \\
+    \partial_{w_2} L_\text{log} &= \frac{ -y x_2 e^{-y(w_0 + w_1 x_1 + w_2 x_2)} }{ 1 + e^{-y(w_0 + w_1 x_1 + w_2 x_2)} }
+  \end{align*}
 
+  For the given weights, $e^{-y(w_0 + w_1 x_1 + w_2 x_2)} = e^{-y x_1}$.
+  \begin{align*}
+    \nabla_w L_\text{log} (1/2, 3) &= \frac{e^{-1/2}}{1 + e^{-1/2}} \begin{pmatrix} -1 \\ -1/2 \\ -3 \end{pmatrix} \\
+    \nabla_w L_\text{log} (2, -2)  &= \frac{e^{-2}}{1 + e^{-2}} \begin{pmatrix} -1 \\ -2 \\ 2 \end{pmatrix} \\
+    \nabla_w L_\text{log} (-3, 1)  &= \frac{e^{3}}{1 + e^{3}} \begin{pmatrix} 1 \\ -3 \\ 1 \end{pmatrix}
+  \end{align*}
+
+  If $1 - y(w_0 + w_1 x_1 + w_2 x_2) < 0$, $\nabla_w L_\text{hinge} = 0$.
+  If $1 - y(w_0 + w_1 x_1 + w_2 x_2) > 0$,
+  \begin{align*}
+    \partial_{w_0} L_\text{hinge} &= -y \\
+    \partial_{w_1} L_\text{hinge} &= -y x_1 \\
+    \partial_{w_2} L_\text{hinge} &= -y x_2
+  \end{align*}
+  \begin{align*}
+    \nabla_w L_\text{hinge} (1/2, 3) &= \begin{pmatrix} -1 \\ -1/2 \\ -3 \end{pmatrix} \\
+    \nabla_w L_\text{hinge} (2, -2)  &= \begin{pmatrix} -1 \\ -2 \\ 2 \end{pmatrix} \\
+    \nabla_w L_\text{hinge} (-3, 1)  &= \begin{pmatrix} 1 \\ -3 \\ 1 \end{pmatrix}
+  \end{align*}
 \end{solution}
 
 \problem[4]
 Compare the gradients resulting from log loss to those resulting from hinge loss. When (if ever) will these gradients converge to 0? For a linearly separable dataset, is there any way to reduce or altogether eliminate training error without changing the decision boundary?
 
 \begin{solution}
-
+  The gradient from log loss is never zero, but approaches zero as $y \mathbf{w}^T \mathbf{x}$ increases (as the loss decreases).
+  The gradient from hinge loss is exactly zero whenever $y \mathbf{w}^T \mathbf{x} > 1$.
+  For a linearly separable dataset, $y \mathbf{w}^T \mathbf{x}$ can be made arbitrarily large without changing the decision boundary by scaling $\mathbf{w}$, so we can make hinge loss zero for any boundary that separates the dataset.
 \end{solution}
 
 \problem[5]
@@ -224,7 +261,8 @@ Based on your answer to the previous question, explain why for an SVM to be a ``
 (You don't need to prove that minimizing $L_\text{hinge} + \lambda\Vert w \Vert^2$ results in a maximum margin classifier; just show that the additional penalty term addresses the issues of minimizing just $L_\text{hinge}$.)
 
 \begin{solution}
-
+  The issue in 1D was that we can scale $\mathbf{w}$ as large as we want while keeping zero loss.
+  By adding the magnitude of $\mathbf{w}$ to the loss function, we penalize making $\mathbf{w}$ very large, so we can't "cheat" that way.
 \end{solution}
 
 \newpage
@@ -239,7 +277,9 @@ Will adding a penalty term always decrease the out-of-sample errors?
 Please justify your answers. Think about the case when there is over-fitting while training the model.
 
 \begin{solution}
- 
+  Adding regularization cannot decrease in-sample error, because the learning algorithm was minimizing in-sample error before we added it, and now it's minimizing something different.
+
+  Regularization is not guaranteed to reduce out-of-sample error, because it is fundamentally impossible to make guarantees about out of sample error, it just makes overfitting less likely.
 \end{solution}
 
 \problem[4]
@@ -248,7 +288,7 @@ In fact, $\ell_0$ regularization (using $\ell_0$ norm instead of $\ell_1$ or $\e
 However, it is rarely used.  Why?
 
 \begin{solution}
-
+  $\ell_0$ is just the number of non-zero weights, which doesn't change with small adjustments to weight values, so it can't be optimized with gradient descent well.
 \end{solution}
 
 \subsection{Implementation of \texorpdfstring{$\ell_2$}{L2} regularization:}
@@ -300,35 +340,45 @@ Do the following for both training data sets (wine\_training1.txt and wine\_trai
  You should end up with three plots, with two series (one for wine\_training1.txt and one for wine\_training2.txt) on each plot. Note that the $E_\text{in}$ and $E_\text{out}$ values you plot should not include the regularization penalty --- the penalty is only included when performing gradient descent.
 
 \begin{solution}
+  \href{https://colab.research.google.com/drive/1RujLj2O-ulnnbdGWNEeWRFJ-sQnsWKtP?usp=sharing}{Colab notebook}
 
+  Note: I wasn't able to observe overfitting with $\eta = 5 \times 10^{-4}$ within a reasonable computation time, so I increased $\eta$ to $5 \times 10^{-3}$ and reduced the number of epochs to 2000, which didn't significantly impact the convergence of the model other than speeding it up.
+  
+  \includegraphics[width=0.45\textwidth]{images/2c_ein.png}
+  \includegraphics[width=0.45\textwidth]{images/2c_eout.png}
+
+  \includegraphics[width=0.45\textwidth]{images/2c_norm.png}
 \end{solution}
 
 \problem[4]
 Given that the data in wine\_training2.txt is a subset of the data in wine\_training1.txt, compare errors (training and test) resulting from training with wine\_training1.txt (100 data points) versus wine\_training2.txt (40 data points). Briefly explain the differences.
 
 \begin{solution}
-
+  Training set 2 sees slightly lower in-sample error, and much higher out-of-sample error.
+  This is because a smaller training set is easier for gradient descent to fit, giving lower in-sample error, but is a worse repesenation of the actual data, giving higher out-of-sample error.
 \end{solution}
 
 \problem[4]
 Briefly explain the qualitative behavior (i.e. over-fitting and under-fitting) of the training and test errors with different $\lambda$s while training with data in wine\_training1.txt.
 
 \begin{solution}
-
+  With small $\lambda$, the models overfit to the training data, which causes a higher out-of-sample error.
+  With very large $\lambda$, the models underfit the data, and have high in-sample and out-of-sample error.
+  Some middle values of $\lambda$ increase in-sample error but reduce out-of-sample error.
 \end{solution}
 
 \problem[4]
 Briefly explain the qualitative behavior of the $\ell_2$ norm of $\textbf{w}$ with different $\lambda$s while training with the data in wine\_training1.txt.
 
 \begin{solution}
-   
+  Increasing $\lambda$ increases the penalty for having large $\ell_2$ norm, so the larger $\lambda$ is, the smaller $\ell_2$ ends up being when the regularized loss is minimized.
 \end{solution}
 
 \problem[4]
 If the model were trained with wine\_training2.txt, which $\lambda$ would you choose to train your final model? Why?
 
 \begin{solution}
-  
+  I would pick $\lambda$ near 1, which minimized the validation error as shown in my plots.
 \end{solution}
 
 % Question 3
@@ -365,7 +415,13 @@ What happens to the number of model weights that are exactly zero with Ridge reg
 }
 
 \begin{solution}
+  \href{https://colab.research.google.com/drive/1KgRAuNPYP88c8LhAu-vSoqk85wm7K7sM?usp=sharing}{Colab notebook}
 
+  \includegraphics[width=0.45\textwidth]{images/3a_lasso.png}
+  \includegraphics[width=0.45\textwidth]{images/3a_ridge.png}
+
+  With Lasso regularization, the number of weights that are exaclty zero increases consistently as $\alpha$ increases.
+  With Ridge regression, as far as I can tell none of the weights are ever exactly zero.
 \end{solution}
 
 \problem[7]
@@ -380,14 +436,28 @@ where $\mathbf{x} \in \mathbb{R}^{N}$ is the vector of datapoints and $\mathbf{y
 This is linear regression with Lasso regularization.
 
 \begin{subsolution}
- 
+  \begin{align*}
+    0 &= \frac{d}{d w} \left( \lambda |w| + (\mathbf{y} - \mathbf{x} w)^T (\mathbf{y} - \mathbf{x} w) \right) \\
+    &= \frac{d}{d w} \left( \lambda |w| + \mathbf{y}^T \mathbf{y} - \mathbf{y}^T \mathbf{x} w - \mathbf{x}^T \mathbf{y} w + \mathbf{x}^T \mathbf{x} w^2 \right) \\
+    &= \lambda \sign(w) - 2 \mathbf{y}^T \mathbf{x} + 2 \mathbf{x}^T \mathbf{x} w \\
+    &= \frac{1}{2} \lambda \sign(w) - \mathbf{y}^T \mathbf{x} + \mathbf{x}^T \mathbf{x} w
+  \end{align*}
+
+  If we know the sign of $w$ without regularization
+  $$
+  w = \frac{ \mathbf{y}^T \mathbf{x} - \frac{1}{2} \lambda \sign(w) }{ \mathbf{x}^T \mathbf{x} }
+  $$
 \end{subsolution}
 
 \subproblem
 In this question, we continue to consider Lasso regularization in 1-dimension. Now, suppose that $w \neq 0$ when $\lambda = 0$. Does there exist a value for $\lambda$ such that $w = 0$? If so, what is the smallest such value?
 
 \begin{subsolution}
-  
+  $$
+  \lambda = \frac{ 2 \mathbf{y}^T \mathbf{w} }{ \mathbf{x}^T \mathbf{x} }
+  $$
+
+  will set $w$ to zero.
 \end{subsolution}
 
 \problem[7]
@@ -400,13 +470,23 @@ where $\mathbf{X} \in \mathbb{R}^{N \times d}$ is the matrix of datapoints and $
 This is linear regression with Ridge regularization.
 
 \begin{subsolution}
- 
+  \begin{align*}
+    0 &= \frac{d}{d w} \left( \lambda \mathbf{w}^T \mathbf{w} + (\mathbf{y} - \mathbf{X} \mathbf{w})^T (\mathbf{y} - \mathbf{X} \mathbf{w}) \right) \\
+    &= \frac{d}{d w} \left( \lambda \mathbf{w}^T \mathbf{w} + \mathbf{y}^T \mathbf{y} - (\mathbf{y}^T \mathbf{X} \mathbf{w})^T - \mathbf{y} (\mathbf{X} \mathbf{w})^T + (\mathbf{X} \mathbf{w})^T \mathbf{X} \mathbf{w} \right) \\
+    &= \frac{d}{d w} \left( \lambda \mathbf{w}^T \mathbf{w} + \mathbf{y}^T \mathbf{y} - 2 \mathbf{w}^T \mathbf{X}^T \mathbf{y} + \mathbf{w}^T \mathbf{X}^T \mathbf{X} \mathbf{w} \right) \\
+    &= 2 \lambda \mathbf{w} - 2 \mathbf{X}^T \mathbf{y} + 2 \mathbf{X}^T \mathbf{X} \mathbf{w} \\
+    &= \lambda \mathbf{w} - \mathbf{X}^T \mathbf{y} + \mathbf{X}^T \mathbf{X} \mathbf{w}
+  \end{align*}
+  \begin{align*}
+    (\mathbf{X}^T \mathbf{X} + \lambda \mathbf{I}) \mathbf{w} &= \mathbf{X}^T \mathbf{y} \\
+    \mathbf{w} &= (\mathbf{X}^T \mathbf{X} + \lambda \mathbf{I})^{-1} \mathbf{X}^T \mathbf{y}
+  \end{align*}
 \end{subsolution}
 
 \subproblem In this question, we consider Ridge regularization in 1-dimension. Suppose that $w \neq 0$ when $\lambda = 0$. Does there exist a value for $\lambda > 0$ such that $w = 0$? If so, what is the smallest such value?
 
 \begin{subsolution}
-
+  There is no $\lambda$ such that $\mathbf{w} = 0$.
 \end{subsolution}
 \newpage
 
@@ -426,7 +506,12 @@ $\theta_1 + \dots + \theta_k = 1$. Show that $\theta_1 x_1 + \dots + \theta_k x_
 \emph{Hint: The definition of convexity is that this holds for $k = 2$; you must show it for arbitrary $k$.}\\
 
 \begin{solution}
-    
+  Assume it holds for $k$.
+
+  Let $y_k = \theta_1 x_1 + \dots + \theta_k x_k$, and let $0 \leq \theta_{k+1} \leq 1$.
+  Given $x_{k+1} \in C$, since $y_k \in C$, $(1 - \theta_{k+1}) y_k + \theta_{k+1} x_{k+1} = (1 - \theta_{k+1}) \theta_1 x_1 + \dots + (1 - \theta_{k+1}) \theta_k x_k + \theta_{k+1} x_{k+1} \in C$.
+
+  Therefore the case for $k$ implies the case for $k+1$, so it holds for abitrary $k > 1$ by induction.
 \end{solution}
 
 \vspace{0.5cm}

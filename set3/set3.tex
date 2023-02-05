@@ -1,6 +1,6 @@
 \newif\ifshowsolutions
 \showsolutionstrue
-\input{./preamble}
+\input{../preamble}
 
 
 
@@ -19,6 +19,8 @@
     }
   }
 }
+
+\DeclareMathOperator{\sign}{sign}
 
 \begin{document}
 \pagestyle{fancy}
@@ -84,6 +86,7 @@ Submit a drawing of your tree showing the impurity reduction yielded by each spl
 
 \begin{solution}
 
+    \includegraphics[width=0.9\textwidth]{images/1a.png}
 
 \end{solution}
 
@@ -91,7 +94,9 @@ Submit a drawing of your tree showing the impurity reduction yielded by each spl
 Compared to a linear classifier, is a decision tree always preferred for classification problems? Briefly explain why or why not. If not, draw a simple 2-D dataset that can be perfectly classified by a simple linear classifier but which requires an overly complex decision tree to perfectly classify.
 
 \begin{solution}
-  
+    Decision trees can't make diagonal splits, so fitting data that's linearly separable on a diagonal line requires many splits.
+
+    \includegraphics[width=0.4\textwidth]{images/1b.png}
 \end{solution}
 
 \problem[15]
@@ -115,6 +120,29 @@ justify your answer.
 
 \begin{solution}
 
+    \begin{enumerate}[\bf{i}]
+        \item 
+            No top-level split results in a reduction of impurity.
+            Therefore no splits are made, and the classification error is 1/2.
+
+            \includegraphics[width=0.5\textwidth]{plots/3C.png}
+
+        \item
+            The blue lines indicate splits (one split at 0 for each axis).
+
+            \includegraphics[width=0.5\textwidth]{images/1c_ii.png}
+
+            An impurity measure where the sum of the impurity of two partitions is less than the impurity of the combined partition would have produced this tree using top-down greedy induction.
+            An example of such a function is $L(S') = |S'|^2 (1 - p_{S'}^2 - (1-p_{S'})^2)$.
+
+            This has the effect that any impure sample will be split, even if the split doesn't reduce traditional impurity measures.
+            The benefit is helping with situations like this where a single split can't separate the data but a double split can.
+            The downside is that this impurity measure penalizes large partitions, which would probably lead to more overfitting (since large partitions with only a few outliers usually signify a real trend in the data).
+
+        \item
+            In the worst case, the data are all in a line of alternating classes, so that zero classification error requires a split between every pair of adjacent data points.
+            With 100 data points, we would need 99 thresholds to achieve zero training error.
+    \end{enumerate}
 \end{solution}
 
 \problem[4] Suppose in top-down greedy induction we want to split a leaf node that contains N data points composed of
@@ -124,7 +152,8 @@ complexity (big-O in terms of N and D) of the number of possible splits we must 
 Note: Recall that at each node-splitting step in training a DT, you must consider all possible splits that you can make. While there are an infinite number of possible decision boundaries since we are using continuous features, there are not an infinite number of boundaries that result in unique child sets (which is what we mean by ``split'').
 
 \begin{solution}
-   
+    Assuming that no data points have any identical features, for each feature we could make a split between each pair of consecutive nodes (in that feature). Therefore the number of splits is linear with $D$ and with $N$.
+    $$ N \cdot D $$
 \end{solution}
 
 
@@ -151,7 +180,9 @@ Choose one of the following from i or ii:
 ii. Train a decision tree classifier using Gini as the impurity measure and maximal tree depth as early stopping criterion. Try different tree depths from 2 to 20 in increments of 1. Then, on a single plot, plot both training and test classification error versus tree depth. To do this, fill in the \texttt{eval_tree_based_model_max_depth} function in the code template for this problem.
 
 \begin{solution}
+    \href{https://colab.research.google.com/drive/1wRuIx4mUDYKCiAoidlPLTfT9ON4VnHPi?usp=sharing}{Colab notebook}
  
+    \includegraphics[width=0.45\textwidth]{images/2a.png}
 \end{solution}
 
 \problem[6]
@@ -159,7 +190,10 @@ For either the minimal leaf node size or maximum depth parameters in the previou
 Please justify your answer based on the plot you derived.
 
 \begin{solution}
-   
+    Minimum leaf size of 12 minimized test error.
+    In the case of overfitting, early stopping helps prevent the decision tree from creating splits for small numbers of outliers, which reduces variance and improves the performance of the model.
+    If the minimum leaf size is too large, however, the model will underfit because it can't make small enough partitions to capture the complexity of the data.
+    Therefore we expect the optimal value to be somewhere in the middle, as observed in the plot.
 \end{solution}
 
 \indent\problem[4] Choose one of the following from i or ii: \smallskip 
@@ -171,33 +205,42 @@ ii. Train a random forest classifier using Gini as the impurity measure, maximal
 
 \begin{solution}
 
+    \includegraphics[width=0.45\textwidth]{images/2c.png}
 \end{solution}
 
 \problem[6]
 For either the minimal leaf node size or maximum depth parameters tested, which parameter value minimizes the random forest test error? What effects does early stopping have on the performance of a random forest model?
 Please justify your answer based on the plot you derived.
 
-\begin{solution}
+\pagebreak
 
+\begin{solution}
+    Minimum leaf size of 19 minimized test error.
+    Early stopping in a random forest has a similar effect compared to decision tree (explained in 2B), but it has less of an impact overall because the use of a random forest already reduces variance, so the test error varies less with minimum leaf size as seen in the plot.
 \end{solution}
 
 \problem[4]
 Do you observe any differences between the curves for the random forest and decision tree plots? If so, explain what could account for these differences.
 
 \begin{solution}
-
+    Minimum leaf size has a much smaller impact on the random forest, because the random forest's use of many decision trees with sampled training data and feature sets already reduced the variance of the model.
 \end{solution}
 
 \textbf{Extra Credit [7 points total] :} \problem\textbf{[5 points, Extra Credit]} Complete the other option for \textbf{Problem A }and \textbf{Problem C}.
 
 \begin{solution}
    
+    \includegraphics[width=0.45\textwidth]{images/2f_tree.png}
+    \includegraphics[width=0.45\textwidth]{images/2f_forest.png}
 \end{solution}
 
 \problem\textbf{[2 points, Extra Credit] }For the stopping criterion tested in \textbf{Problem F}, which parameter value minimizes the decision tree and random forest test error respectively? 
 
 \begin{solution}
-   
+
+    Random tree: test error minimized with max depth of 2
+
+    Random forest: test error minimized with max depth of 18
 \end{solution}
 
 
@@ -222,22 +265,41 @@ $$E = \frac{1}{N} \sum\limits_{i=1}^N \exp(-y_{i}f(x_i)) \geq \frac{1}{N} \sum\l
 where $\mathbbm{1}$ is the indicator function.
 
 \begin{solution}
+    If $H(x_i) \neq y_i$, then $\sign(f(x_i)) \neq y_i$, so $\exp(-y_i f(x_i)) > 1 = \mathbbm{1}(H(x_i) \neq y_i)$.
+    Otherwise, $\exp(-y_i f(x_i)) > 0 = \mathbbm{1}(H(x_i) \neq y_i)$.
 
+    Thus the exponential loss is $\geq$ to 0-1 loss for every data point, so it can act as an upper bound for training set error.
 \end{solution}
 
 \problem[3]
 Find $D_{T + 1}(i)$ in terms of $Z_t$, $\alpha_t$, $x_i$, $y_i$, and the classifier $h_t$, where $T$ is the last timestep and $t \in \{1, \ldots, T\}$. Recall that $Z_t$ is the normalization factor for distribution $D_{t+1}$:
 $$Z_t = \sum\limits_{i=1}^N D_t(i) \exp(-\alpha_{t}y_{i}h_{t}(x_{i})).$$
 
-\begin{solution}
+\pagebreak
 
+\begin{solution}
+    \begin{align*}
+        D_1(i) &= 1/N \\
+        D_{t+1}(i) &= \frac{D_t(i) \exp(-\alpha_t y_i h_t(x_i))}{Z_t} \\
+        D_{T+1}(i) &= \frac{1}{N} \prod_{t=1}^{T} \frac{\exp(-\alpha_t y_i h_t(x_i))}{Z_t}
+    \end{align*}
 \end{solution}
 
 \problem[2]
 Show that $E = \sum_{i=1}^N  \frac{1}{N} e^{\sum_{t=1}^T -\alpha_t y_i h_t(x_i)}.$
 
 \begin{solution}
+    $$
+    \sum_{t=1}^T -\alpha_t y_i h_t(x_i) =
+    -y_i \sum_{t=1}^T \alpha_t h_t(x_i) =
+    -y_i f(x_i)
+    $$
 
+    $$
+    \sum_{i=1}^N  \frac{1}{N} e^{\sum_{t=1}^T -\alpha_t y_i h_t(x_i)} = 
+    \sum_{i=1}^N  \frac{1}{N} e^{-y_i f(x_i)} = 
+    E
+    $$
 \end{solution}
 
 \problem[5]
@@ -249,7 +311,17 @@ $$E = \prod\limits_{t=1}^T Z_t.$$
 \end{hint}
 
 \begin{solution}
-
+    $$
+    D_{T+1}(i) =
+    \frac{1}{N} \prod_{t=1}^{T} \frac{\exp(-\alpha_t y_i h_t(x_i))}{Z_t} =
+    \frac{1}{N} \cdot \frac{\prod_{t=1}^{T} \exp(-\alpha_t y_i h_t(x_i))}{\prod_{t=1}^{T} Z_t}
+    $$
+    \begin{align*}
+        D_{T+1}(i) \prod_{t=1}^{T} Z_t &= \frac{1}{N} \prod_{t=1}^{T} \exp(-\alpha_t y_i h_t(x_i)) \\
+        &= \frac{1}{N} \exp(\sum_{t=1}^T -\alpha_t y_i h_t(x_i)) \\
+        \sum_{i=1}^N D_{T+1}(i) \prod_{t=1}^{T} Z_t &= \sum_{i=1}^N \frac{1}{N} \exp(\sum_{t=1}^T -\alpha_t y_i h_t(x_i)) \\
+        \prod_{t=1}^{T} Z_t &= E
+    \end{align*}
 \end{solution}
 
 \problem[5]
@@ -259,7 +331,21 @@ where $\epsilon_t$ is the training set error of weak classifier $h_t$ for the we
 \[\epsilon_t = \sum\limits_{i=1}^N D_t(i)\mathbbm1(h_t(x_i) \neq y_i).\]
 
 \begin{solution}
-	
+    Using the fact that $h_t(x_i), y_i \in \{-1, 1\}$:
+    \begin{align*}
+        Z_t &= \sum_{i=1}^N D_t(i) e^{-\alpha_{t}y_{i}h_{t}(x_{i})} \\
+        &= \sum_{i=1}^N D_t(i) \left[
+            \mathbbm{1}(h_t(x_i) = y_i)e^{-\alpha_{t}} +
+            \mathbbm{1}(h_t(x_i) \neq y_i)e^{\alpha_{t}}
+            \right] \\
+        &= \sum_{i=1}^N D_t(i) \mathbbm{1}(h_t(x_i) = y_i)e^{-\alpha_{t}} +
+           \sum_{i=1}^N D_t(i) \mathbbm{1}(h_t(x_i) \neq y_i)e^{\alpha_{t}} \\
+        &= \sum_{i=1}^N D_t(i) \left[1 - \mathbbm{1}(h_t(x_i) \neq y_i) \right] e^{-\alpha_{t}} +
+           \sum_{i=1}^N D_t(i) \mathbbm{1}(h_t(x_i) \neq y_i)e^{\alpha_{t}} \\
+        &= \left(\sum_{i=1}^N D_t(i) - \sum_{i=1}^N D_t(i) \mathbbm{1}(h_t(x_i) \neq y_i) \right) e^{-\alpha_{t}} +
+           \sum_{i=1}^N D_t(i) \mathbbm{1}(h_t(x_i) \neq y_i)e^{\alpha_{t}} \\
+        &= (1 - \epsilon_t) e^{-\alpha_t} + \epsilon_t e^{\alpha_t}
+    \end{align*}
 \end{solution}
 
 \problem[2]
@@ -269,7 +355,13 @@ AdaBoost:
 $$\alpha_{t}^* = \frac{1}{2} \ln \left(\frac{1 - \epsilon_t}{\epsilon_t} \right).$$
 
 \begin{solution}
-	
+    $$ 0 = \frac{d Z_t}{d \alpha_t} = -(1 - \epsilon_t) e^{-\alpha_t} + \epsilon_t e^{\alpha_t} $$
+    \begin{align*}
+    (1 - \epsilon_t) e^{-\alpha_t} &= \epsilon_t e^{\alpha_t} \\
+    \frac{1 - \epsilon_t}{\epsilon_t} &= e^{2 \alpha_t} \\
+    \ln \left(\frac{1 - \epsilon_t}{\epsilon_t} \right) &= 2 \alpha_t \\
+    \frac{1}{2} \ln \left(\frac{1 - \epsilon_t}{\epsilon_t} \right) &= \alpha_t
+    \end{align*}
 \end{solution}
 
 \begin{problem}[14]
@@ -286,8 +378,13 @@ $$\alpha_{t}^* = \frac{1}{2} \ln \left(\frac{1 - \epsilon_t}{\epsilon_t} \right)
     Describe and explain the behaviour of the loss curves for gradient boosting and for AdaBoost. You should consider two kinds of behaviours: the smoothness of the curves and the final values that the curves approach.
 \end{problem}
 
+\pagebreak
+
 \begin{solution}
-  
+    \href{https://colab.research.google.com/drive/1BGnwB-zCiHJNvN4Ay0QlmWGJJF420Vl6?usp=sharing}{Colab notebook}
+
+    The gradient boosting curve was much smoother than AdaBoost.
+    Gradient boosting also reached lower training loss, and overfit quickly, whereas with AdaBoost the test loss followed the training loss curve for much longer.
 \end{solution}
 
 \begin{problem}[2]
@@ -295,7 +392,7 @@ $$\alpha_{t}^* = \frac{1}{2} \ln \left(\frac{1 - \epsilon_t}{\epsilon_t} \right)
 \end{problem}
 
 \begin{solution}
-  
+    AdaBoost performed better with test loss of 0.186 vs gradient boosting's test loss of 0.264.
 \end{solution}
 
 \begin{problem}[2]
@@ -305,7 +402,7 @@ $$\alpha_{t}^* = \frac{1}{2} \ln \left(\frac{1 - \epsilon_t}{\epsilon_t} \right)
     Watch how the dataset weights change across time in the animation.
 \end{hint}
 \begin{solution}
-   
+    AdaBoost put the most weight on the data points it got wrong, which in this case were the ones at the boundary of the two spirals.
 \end{solution}
 
 \newpage
@@ -322,7 +419,19 @@ Let $\mathcal{X}$ be a convex set. If $f$ is a convex function, show that any lo
 \end{problem}
 
 \begin{solution}
-   
+    Let $x_1$ be a local minimum of $f$, and let $x_2$ be any other point in $\mathcal{X}$.
+
+    Since $x_1$ is a local minimum there exists some $t \in [0, 1)$ such that $f(x_1) < f(t x_1 + (1 - t) x_2)$.
+    And because $f$ is convex, $f(t x_1 + (1 - t) x_2) \leq t f(x_1) + (1 - t) f(x_2)$.
+    Combining these inequalities gives 
+    \begin{align*}
+        f(x_1) &< t f(x_1) + (1 - t) f(x_2) \\
+        f(x_1) - t f(x_1) &< (1 - t) f(x_2) \\
+        (1 - t) f(x_1) &< (1 - f) f(x_2) \\
+        f(x_1) &< f(x_2)
+    \end{align*}
+
+    Therefore $f(x_1)$ is less than $f(x_2)$ for any $x_2 \neq x_1$ in $\mathcal{X}$, so any local minimum is a global minimum.
 \end{solution}
 
 \begin{problem}[4]
@@ -330,8 +439,10 @@ Let $\mathcal{X}$ be a convex set. If $f$ is a convex function, show that any lo
 \end{problem}
 
 \begin{solution}
-   
+    Gradient descent (and similar optimization algorithms) converge to local minima.
+    If a local minimum is a global minimum, that means they will converge to the global minimum.
 \end{solution}
+
 \problem\textbf{[3 points, Extra Credit] }
 The Kullback-Leibler (KL) divergence is a measure of statistical distance between two probability distributions $(p, q)$, also called the relative entropy. KL divergence can be used to generate optimal parameters for visualization models (which we will also see in set 4).
 \[\mathrm{KL}[P\|Q] = \sum_{x\in\mathcal{X}} p(x) \cdot \log \frac{p(x)}{q(x)}\]

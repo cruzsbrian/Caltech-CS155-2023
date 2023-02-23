@@ -1,6 +1,6 @@
 \newif\ifshowsolutions
 \showsolutionstrue
-\input{preamble}
+\input{../preamble}
 
 
 
@@ -19,6 +19,8 @@
     }
   }
 }
+
+\DeclareMathOperator{\Tr}{Tr}
 
 \begin{document}
 \pagestyle{fancy}
@@ -65,11 +67,27 @@ For each notebook, you need to save a copy to your drive.
 \problem[3] Let $X$ be a $N \times N$ matrix. For the singular value decomposition (SVD) $X = U \Sigma V^T$, show that the columns of $U$ are the principal components of $X$. What relationship exists between the singular values of $X$ and the eigenvalues of $XX^T$?
 
 \begin{solution}
+	$$ X X^T = U_\text{PCA} \Lambda U_\text{PCA}^T $$
+	where $U_\text{PCA}$ is orthogonal and $\Lambda$ is diagonal.
+
+	With $X = U_\text{SVD} \Sigma V^T$ (where $U_\text{SVD}$ and $V$ are orthogonal and $\Sigma$ is diagonal),
+	$$
+	X X^T =
+	\left( U_\text{SVD} \Sigma V^T \right)\left( U_\text{SVD} \Sigma V^T \right)^T =
+	U_\text{SVD} \Sigma V ^T V \Sigma U_\text{SVD}^T = U_\text{SVD} \Sigma^2 U_\text{SVD}^T
+	$$
+
+	If we also choose to put the $\Sigma$ values in descending order (like done in PCA), then the SVD of $X$ is unique, which means that $U_\text{PCA} = U_\text{SVD}$ and $\Lambda$ = $\Sigma^2$.
+
+	Therefore the columns of $U_\text{SVD}$ are the principal components of $X$, and the singular values of $X$ are the square-roots of the eigenvalues of $X X^T$.
 \end{solution}
 
 \problem[4] Provide both an intuitive explanation and a mathematical justification for why the eigenvalues of the PCA of $X$ (or rather $XX^T$) are non-negative. Such matrices are called positive semi-definite and possess many other useful properties.
 
 \begin{solution}
+	
+
+	Mathematical justification: 1A shows that the eigenvalues are the squares of the singular values of $X$, so as long as $X$ is real-valued they will be non-negative.
 \end{solution}
 
 \problem[5] In calculating the Frobenius and trace matrix norms, we claimed that the trace is invariant under cyclic permutations (i.e., Tr($ABC$) = Tr($BCA$) = Tr($CAB$)). Prove that this holds for any number of square matrices.
@@ -77,6 +95,18 @@ For each notebook, you need to save a copy to your drive.
 \textit{Hint}: First prove that the identity holds for two matrices and then generalize. Recall that Tr$(AB) = \sum_{i=1}^{N}(AB)_{ii}$. Can you find a way to expand $(AB)_{ii}$ in terms of another sum?
 
 \begin{solution}
+	$$
+	\Tr(AB) =
+	\sum_{i=1}^N (AB)_{ii} =
+	\sum_{i=1}^N \sum_{j=1}^N A_{ij} B_{ji} =
+	\sum_{j=1}^N \sum_{i=1}^N B_{ji} A_{ij} =
+	\sum_{j=1}^N (BA)_{jj} =
+	\Tr(BA)
+	$$
+
+	Then for any number $K$ of $N \times N$ matrices $X_1, X_2, \dots$, we can let $A = X_1 X_2 \dots X_k$, $B = X_{k+1} X_{k+2} \dots X_K$, so
+	$$ \Tr(X_1 X_2 \dots X_K) = \Tr(AB) = \Tr(BA) = \Tr(X_{k+1} X_{k+2} \dots X_K X_1 X_2 \dots X_k) $$
+	which gives encompasses all cyclic permutations.
 \end{solution}
 
 \problem[3] Outside of learning, the SVD is commonly used for data compression. Instead of storing a full $N \times N$ matrix $X$ with SVD $X = U\Sigma V^T$, we store a truncated SVD consisting of the $k$ largest singular values of $\Sigma$ and the corresponding columns of $U$ and $V$. One can prove that the SVD is the best rank-$k$ approximation of $X$, though we will not do so here. Thus, this approximation can often re-create the matrix well even for low $k$. Compared to the $N^2$ values needed to store $X$, how many values do we need to store a truncated SVD with $k$ singular values? For what values of $k$ is storing the truncated SVD more efficient than storing the whole matrix?
@@ -84,6 +114,10 @@ For each notebook, you need to save a copy to your drive.
 \textit{Hint}: For the diagonal matrix $\Sigma$, do we have to store every entry?
 
 \begin{solution}
+	The truncated $U$ and $V$ are both $N \times k$, and the truncated $\Sigma$ is $k$ non-zero values.
+	In total we have $k(2N + 1)$ values to store.
+
+	The truncated SVD is more efficient when $k (2N + 1) < N^2$, so when $k < N^2 / (2N + 1) \approx N / 2$.
 \end{solution}
 
 \subsection{Dimensions \& Orthogonality} In class, we claimed that a matrix $X$ of size $D \times N$ can be decomposed into $U\Sigma V^T$, where $U$ and $V$ are orthogonal and $\Sigma$ is a diagonal matrix. This is a slight simplification of the truth. In fact, the singular value decomposition gives an orthogonal matrix $U$ of size $D \times D$, an orthogonal matrix $V$ of size $N \times N$, and a rectangular diagonal matrix $\Sigma$ of size $D \times N$, where $\Sigma$ only has non-zero values on entries $(\Sigma)_{ii}$, $i \in \{1, \ldots, K\}$, where $K$ is the rank of the matrix $X$. 
@@ -91,17 +125,61 @@ For each notebook, you need to save a copy to your drive.
 \problem[3]Assume that $D > N$ and that $X$ has rank $N$. Show that $U\Sigma = U'\Sigma'$, where $\Sigma'$ is the $N \times N$ matrix consisting of the first $N$ rows of $\Sigma$, and $U'$ is the $D \times N$ matrix consisting of the first $N$ columns of $U$. The representation $U'\Sigma' V^T$ is called the ``thin'' SVD of $X$.
 
 \begin{solution}
+	$\Sigma$ only has non-zero entries on row/columns from 1 to $N$.
+	We can split $U$ and $\Sigma$ at $N$ rows, so we have
 
+	$$
+	U \Sigma = 
+	\begin{pmatrix}
+		U_{1 \dots N} & U_{N+1 \dots D}
+	\end{pmatrix}
+	\begin{pmatrix}
+		\Sigma_{1 \dots N} \\
+		\Sigma_{N+1 \dots D}
+	\end{pmatrix} =
+	\begin{pmatrix}
+		U' & U_{N+1 \dots D}
+	\end{pmatrix}
+	\begin{pmatrix}
+		\Sigma' \\
+		0
+	\end{pmatrix} =
+	U' \Sigma'
+	$$
 \end{solution}
 
 \problem[3] Show that since $U'$ is not square, it cannot be orthogonal according to the definition given in class. Recall that a matrix $A$ is orthogonal if $A A^T = A^T A = I$.
 
 \begin{solution}
+	$U'$ has shape $D \times N$, so $U' U'^T$ has shape $D \times D$ and $U'^T U'$ has shape $N \times N$.
+	Therefore $U' U'^T \neq U'^T U'$, so $U'$ cannot be orthogonal.
 \end{solution} 
 
 \problem[4] Even though $U'$ is not orthogonal, it still has similar properties. Show that $U^{'T} U' = I_{N \times N}$. Is it also true that $U' U^{'T} = I_{D \times D}$? Why or why not? Note that the columns of $U'$ are still orthonormal. Also note that orthonormality implies linear independence.
 
 \begin{solution}
+	$$
+	I_{D \times D} =
+	U^T U =
+	\begin{pmatrix}
+		U'^T \\
+		U_{N+1 \dots D}^T
+	\end{pmatrix}
+	\begin{pmatrix}
+		U' & U_{N+1 \dots D}
+	\end{pmatrix} =
+	\begin{pmatrix}
+		U'^T U' & U'T U_{N+1 \dots D} \\
+		U_{N+1 \dots D} U' & U_{N+1 \dots D}^T U_{N+1 \dots D}
+	\end{pmatrix}
+	$$
+
+	Therefore $U'^T U' = I_{N \times N}$.
+
+	$U' U'^T \neq I_{D \times D}$.
+	Since $U'$ has shape $D \times N$, it can only have $N$ linearly independent rows.
+	If $D > N$, there must then be some distinct rows $u_i', u_j'$ such that $u_i' u_j'^T \neq 0$, since they are not orthonormal.
+	Therefore $U' U'^T$ must at least one non-zero element off the diagonal.
 \end{solution}
 
 \newpage
@@ -110,15 +188,49 @@ For each notebook, you need to save a copy to your drive.
 \problem[4] Assuming that $\Sigma$ is invertible, show that the pseudoinverse $X^+ = V\Sigma^+ U^T$ as given in class is equivalent to $V\Sigma^{-1} U^T$. Refer to lecture 10 (slide 53) for the definition of pseudoinverse.
 
 \begin{solution}
+	$\Sigma^+ = \begin{bmatrix} \sigma_1^+ & 0 & 0 \\ 0 & \ddots & 0 \\ 0 & 0 & \sigma_N^+ \end{bmatrix}$ where $\sigma^+ = 1 / \sigma$ if $\sigma > 0$ as given in class, so
+
+	$$
+	\Sigma \Sigma^+ =
+	\begin{bmatrix}
+		\sigma_1 & \dots & 0 \\
+		0 & \ddots & 0 \\
+		0 & 0 & \sigma_N
+	\end{bmatrix}
+	\begin{bmatrix}
+		\sigma_1^+ & 0 & 0 \\
+		0 & \ddots & 0 \\
+		0 & 0 & \sigma_N^+
+	\end{bmatrix} =
+	\begin{bmatrix}
+		1 & 0 & 0 \\
+		0 & \ddots & 0 \\
+		0 & 0 & 1
+	\end{bmatrix} =
+	I
+	$$
+
+	Therefore $\Sigma^+ = \Sigma^{-1}$, so $X^+ = V \Sigma^{-1} U^T$.
 \end{solution}
 
 \problem[4] Another expression for the pseudoinverse is the least squares solution $X^{+'} = (X^T X)^{-1}X^T$. Show that (again assuming $\Sigma$ invertible) this is equivalent to $V\Sigma^{-1}U^T$.
 \begin{solution}
+	$X = U \Sigma V^T$, so
+	\begin{align*}
+	(X^T X)^{-1} X^T &= \left( (U \Sigma V^T)^T U \Sigma V^T \right)^{-1} (U \Sigma V^T)^T \\
+		&= \left( V \Sigma U^T U \Sigma V^T \right)^{-1} (U \Sigma V^T)^T \\
+		&= \left( V \Sigma^2 V^T \right)^{-1} V \Sigma U^T \\
+		&= (V^T)^{-1} \Sigma^{-2} V^{-1} V \Sigma U^T \\
+		&= V \Sigma^{-2} \Sigma U^T \\
+		&= V \Sigma^{-1} U^T
+	\end{align*}
 \end{solution}
 
 \problem[2] One of the two expressions in problems H and I for calculating the pseudoinverse is highly prone to numerical errors. Which one is it, and why? Justify your answer using condition numbers.
 \begin{solution}
-
+	I is probably more prone to numerical errors.
+	I requires us to invert $X^T X$ whereas H requires inverting $\Sigma$.
+	Since $\Sigma^2$ gives the singular values of $X^T X$ (1A), the condition number for $X^T X$ will be the square of the condition number for $\Sigma$.
 \end{solution}
 
 
@@ -137,7 +249,22 @@ v_j &= v_j - \eta \partial_{v_j}
 where $\eta$ is the learning rate.
 
 \begin{solution}
+	I use $x_{i*}$ to indicate the $i$-th row of $X$, and $x_{*i}$ to indicate the i-th column of $X$.
 
+	\begin{align*}
+		\partial_{u_i} &= \frac{\lambda}{2} \frac{\partial}{\partial u_i} \|U\|_F^2 + \frac{1}{2} \frac{\partial}{\partial u_i} \|Y - U V^T\|_F^2 \\
+			&= \frac{\lambda}{2} \frac{\partial}{\partial u_i} u_{i*} u_{i*}^T + \frac{1}{2} \frac{\partial}{\partial u_i} (y_{i*} - u_{i*} V^T) (y_{i*} - u_{i*} V^T)^T \\
+			&= \frac{\lambda}{2} \frac{\partial}{\partial u_i} u_{i*} u_{i*}^T + \frac{1}{2} \frac{\partial}{\partial u_i} (y_{i*} y_{i*}^T - y_{i*} V u_{i*}^T - u_{i*} V^T y_{i*}^T + u_{i*} V^T V u_{i*}^T) \\
+			&= \frac{\lambda}{2} \frac{\partial}{\partial u_i} u_{i*} u_{i*}^T + \frac{1}{2} \frac{\partial}{\partial u_i} (-2 y_{i*} V u_{i*}^T + u_{i*} V^T V u_{i*}^T) \\
+			&= \lambda u_{i*} - y_{i*} V + u_{i*} V^T V
+	\end{align*}
+	\begin{align*}
+		\partial_{v_j} &= \frac{\lambda}{2} \frac{\partial}{\partial v_j} \|V\|_F^2 + \frac{1}{2} \frac{\partial}{\partial v_j} \|Y - U V^T\|_F^2 \\
+			&= \frac{\lambda}{2} \frac{\partial}{\partial v_j} v_{j*} v_{j*}^T + \frac{1}{2} \frac{\partial}{\partial v_j} (y_{*j} - U v_{j*}^T)^T (y_{*j} - U v_{j*}^T) \\
+			&= \frac{\lambda}{2} \frac{\partial}{\partial v_j} v_{j*} v_{j*}^T + \frac{1}{2} \frac{\partial}{\partial v_j} (y_{*j}^T y_{*j} - y_{*j}^T U v_{j*}^T - v_{j*} U^T y_{*j} + v_{j*} U^T U v_{j*}^T ) \\
+			&= \frac{\lambda}{2} \frac{\partial}{\partial v_j} v_{j*} v_{j*}^T + \frac{1}{2} \frac{\partial}{\partial v_j} (-2 y_{*j}^T U v_{j*}^T + v_{j*} U^T U v_{j*}^T) \\
+			&= \lambda v_{j*} - y_{*j}^T U + v_{j*} U^T U
+	\end{align*}
 \end{solution}
 
 \problem[5]Another method to minimize the regularized squared error is alternating least squares (ALS). ALS solves the problem by first fixing $U$ and solving for the optimal $V$, then fixing this new $V$ and solving for the optimal $U$.  This process is repeated until convergence.
@@ -145,6 +272,17 @@ where $\eta$ is the learning rate.
 Derive closed form expressions for the optimal $u_i$ and $v_j$.  That is, give an expression for the $u_i$ that minimizes the above regularized square error given fixed $V$, and an expression for the $v_j$ that minimizes it given fixed $U$.
 
 \begin{solution}
+	We set the gradient to 0 to find the optimal $u_i$ or $v_j$.
+	\begin{align*}
+		\lambda u_{i*} - y_{i*} V + u_{i*} V^T V &= 0 \\
+		(\lambda I + V^T V) u_{i*} &= y_{i*} V \\
+		u_{i*} &= (\lambda I + V^T V)^{-1} y_{i*} V
+	\end{align*}
+	\begin{align*}
+		\lambda v_{j*} - y_{*j}^T U + v_{j*} U^T U &= 0 \\
+		(\lambda I + V^T V) v_{j*} &= y_{*j}^T U \\
+		v_{j*} &= (\lambda I + U^T U)^{-1} y_{*j}^T U
+	\end{align*}
 \end{solution}
 
 \problem[10]Download the provided MovieLens dataset (train.txt and test.txt).  The format of the data is (\emph{user, movie, rating}), where each triple encodes the rating that a particular user gave to a particular movie. Make sure you check if the user and movie ids are 0 or 1-indexed, as you should with any real-world dataset.
@@ -163,18 +301,32 @@ In your implementation, you should:
 \end{itemize}
 \end{itemize}
 \begin{solution}
-
+	\href{https://colab.research.google.com/drive/1IE2JHw4xb7s5HXLfgBix8hoHEycQTR4D?usp=sharing}{Colab notebook}
 \end{solution}
 
 \problem[5]Use your code from the previous problem to train your model using $k=10, 20, 30, 50, 100$, and plot your $E_{in}, E_{out}$ against $k$. Note that $E_{in}$ and $E_{out}$ are calculated via the squared loss, i.e. via $\frac{1}{2}\sum_{i,j} \left( y_{ij} - u_i^Tv_j\right)^2$. What trends do you notice in the plot? Can you explain them?
 
 \begin{solution}
+	
+	\begin{center}
+		\includegraphics[width=0.5\textwidth]{plots/2d.png}
+	\end{center}
+
+	As $K$ increases, in sample error decreases while out of sample error increases.
+	This is expected because increasing $K$ increases the capacity of the model, so it overfits on the training data.
 \end{solution}
 
 \problem[5]Now, repeat problem D, but this time with the regularization term. Use the following regularization values: $\lambda \in \{1e-4, 1e-3, 0.01, 0.1, 1\}$. For each regularization value, use the same range of values for $k$ as you did in the previous part. What trends do you notice in the graph? Can you explain them in the context of your plots for the previous part? You should use your code you wrote for part C in 2_notebook.ipynb.
 
 \begin{solution}
 
+	\begin{center}
+		\includegraphics[width=0.5\textwidth]{plots/2e.png}
+	\end{center}
+
+	For low $\lambda$, we see the same behavior as before: out of sample error increases with a larger model due to overfitting.
+	As $\lambda$ increases, the overfitting decreases to a minimum around $\lambda = 0.1$.
+	Then at $\lambda = 1$, error increases again because the regularization is too high, so we are underfitting the data.
 \end{solution}
 
 \newpage
@@ -193,6 +345,12 @@ Given a sequence of training words $w_1, w_2, \hdots, w_T$, the training objecti
 If we wanted to train this model with naive gradient descent, we'd need to compute all the gradients $\nabla \log p(w_O|w_I)$ for each $w_O$, $w_I$ pair.  How does computing these gradients scale with $W$, the number of words in the vocabulary, and $D$, the dimension of the embedding space? To be specific, what is the time complexity of calculating $\nabla \log p(w_O|w_I)$ for a single $w_O$, $w_I$ pair?
 
 \begin{solution}
+	For a single $w_O, w_I$ pair, we need to compute one partial derivative for each of the weights (linear with $D$).
+	For $w_O$ weights, there is only the numerator term so the time complexity is constant.
+	For $w_I$ weights, there is one numerator term and $W$ denominator terms, so the time complexity is linear with $W$.
+	Therefore the time complexity for fully computing a single pair is $O(WD)$.
+
+	Since we have $W^2$ pairs of words, the overall time complexity is $O(W^3 D)$.
 \end{solution}
 
 
@@ -225,6 +383,18 @@ queen & 6           \\ \hline
 \end{table}
 
 \begin{solution}
+
+	\begin{center}
+		\begin{tabular}{ c c }
+			Huffman tree: & Binary tree: \\
+			\includegraphics[width=0.35\textwidth]{plots/3b_huffman.png} &
+			\includegraphics[width=0.55\textwidth]{plots/3b_binary.png}
+		\end{tabular}
+	\end{center}
+
+	Expected length with Huffman tree: $(2 (18 + 20) + 3 (7 + 9) + 4 (4 + 4 + 5 + 6)) / 73 \approx 2.7$.
+	
+	Expected length with binary tree: 3
 \end{solution}
 
 
@@ -232,6 +402,8 @@ queen & 6           \\ \hline
 In principle, one could use any $D$ for the dimension of the embedding space.  What do you expect to happen to the value of the training objective as $D$ increases?  Why do you think one might not want to use very large $D$?
 
 \begin{solution}
+	As $D$ increases, the training objective should improve, since the model will be able to learn more about each word.
+	But very large $D$ would allow the model to make lots of word vectors orthogonal to each other, which would improve its training performance but reduce our ability to find word similarity by comparing their vectors, since the dot product of orthogonal vectors is 0.
 \end{solution}
 
 \subsection{Implementing Word2Vec}
@@ -277,6 +449,8 @@ Fill out the TODOs in the skeleton code; specifically, add code where indicated 
 
 \begin{solution}
 See solution code in 3_notebook.ipynb %%Don't remove this answer
+
+\href{https://colab.research.google.com/drive/1llxzBRPRJORS8Iplyp4qiohv-CA_jwrb?usp=sharing}{Colab notebook}
 \end{solution}
 
 \subsection{Running the code}
@@ -286,21 +460,58 @@ Run your model on dr_seuss.txt and answer the following questions:
 What is the dimension of the weight matrix of your hidden layer?
 
 \begin{solution}
+	$308 \times 10$
 \end{solution}
 
 \problem[2]
 What is the dimension of the weight matrix of your output layer?
 \begin{solution}
+	$10 \times 308$
 \end{solution}
 
 \problem[1]
 List the top 30 pairs of most similar words that your model generates.
 \begin{solution}
+	\begin{verbatim}
+Pair(town, found), Similarity: 0.9917908
+Pair(found, town), Similarity: 0.9917908
+Pair(hand, wave), Similarity: 0.9860244
+Pair(wave, hand), Similarity: 0.9860244
+Pair(likes, drink), Similarity: 0.9838316
+Pair(drink, likes), Similarity: 0.9838316
+Pair(comes, put), Similarity: 0.9741637
+Pair(put, comes), Similarity: 0.9741637
+Pair(goat, boat), Similarity: 0.97260076
+Pair(boat, goat), Similarity: 0.97260076
+Pair(play, game), Similarity: 0.97163326
+Pair(game, play), Similarity: 0.97163326
+Pair(long, way), Similarity: 0.9714244
+Pair(way, long), Similarity: 0.9714244
+Pair(is, shoe), Similarity: 0.96591914
+Pair(shoe, is), Similarity: 0.96591914
+Pair(cant, but), Similarity: 0.9646215
+Pair(but, cant), Similarity: 0.9646215
+Pair(zeep, today), Similarity: 0.964261
+Pair(today, zeep), Similarity: 0.964261
+Pair(fly, kite), Similarity: 0.96381795
+Pair(kite, fly), Similarity: 0.96381795
+Pair(hair, heads), Similarity: 0.96340865
+Pair(heads, hair), Similarity: 0.96340865
+Pair(finger, top), Similarity: 0.96332663
+Pair(top, finger), Similarity: 0.96332663
+Pair(did, ever), Similarity: 0.9629352
+Pair(ever, did), Similarity: 0.9629352
+Pair(wire, goodbye), Similarity: 0.9616629
+Pair(goodbye, wire), Similarity: 0.9616629
+	\end{verbatim}
 \end{solution}
 
 \problem[2]
 What patterns do you notice across the resulting pairs of words?
 \begin{solution}
+	Mostly words that intuitively would be near each other: (hand, wave), (likes, drink), (game, play), (long, way), (fly, kite), etc.
+
+	Some rhymes: (town, found), (boat, goat)
 \end{solution}
 
 

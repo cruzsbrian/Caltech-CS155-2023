@@ -1,0 +1,3 @@
+[submodule "proj2"]
+	path = proj2
+	url = git@github.com:L-anc/MovieLens.git

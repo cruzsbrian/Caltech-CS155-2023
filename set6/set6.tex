@@ -1,6 +1,6 @@
 \newif\ifshowsolutions
 \showsolutionstrue
-\input{./preamble}
+\input{../preamble}
 
 
 
@@ -94,25 +94,42 @@ Now consider a different model, which we will call the `full' model, in which al
 \problem[5]Use the chain rule of probability to factorize $p(x \mid y)$, and let $\theta_{xjc} = P(x_j | x_{1, \ldots, j - 1}, y = c)$. Assuming we store each $\theta_{xjc}$, how many parameters are needed to represent this factorization? Use big-O notation.
 
 \begin{solution} % Thanks to Michael for pointing this out
+  \begin{align*}
+    p(x \mid y = c) &= P(x_1, \dots, x_D \mid y = c) \\
+      &= \theta_{xDc} P(x_1, \dots, x_{D-1} \mid y = c) \\
+      &= \prod_{j=1}^D \theta{xjc}
+  \end{align*}
+
+  There are $DC$ terms in the product, but $\theta_{xjc}$ depends on $j - 1$ other $x$ values, so it uses $2^{j-1}$ parameters.
+  So the number of parameters is $C \sum_{j=1}^D 2^{j-1} = C (2^D - 1)$, which is $O(C \cdot 2^D)$.
 \end{solution}
 
 \problem[5] Assume we did no such factorization, and just used the conditional probability $p(x \mid y = c)$. How many parameters would we need to estimate in order be able to compute $p(x | y = c)$ for arbitrary $x$ and $c$? How does this compare to your answer from the previous part? Again, use big-O notation.
 
 \begin{solution}
+  Given $2^D$ possible values for $x$ and $C$ values for $c$, we have $O(C \cdot 2^D)$ again.
 \end{solution}
 
 \problem[2] Assume the number of features $D$ is fixed. Let there be $N$ training cases. If the sample size $N$ is very small, which model (Naive Bayes or full) is likely to give lower test set error, and why?
 
 \begin{solution}
+  Naive Bayes is likely to give the lower test error, because as long as $N < 2^D$ the full model can just memorize the entire training set, so it will overfit.
 \end{solution}
 
 \problem[2] If the sample size $N$ is very large, which model (Naive Bayes or full) is likely to give lower test set error, and why?
 \begin{solution}
+  With very large $N$ the full model is likely to give lower test error, because it has higher capacity and can thus learn more from the training set.
 \end{solution}
 
 \problem[11] Assume all the parameter estimates have been computed. What is the computational complexity of making a prediction, i.e. computing $p(y \mid x)$, using Naive Bayes for a single test case? What is the computation complexity of making a prediction with the full model? For the full-model case, assume that converting a $D$-bit vector to an array index is an $O(D)$ operation.  Also, recall that we have assumed a uniform class prior. 
 
 \begin{solution}
+  Assuming a uniform class prior,
+  $$ p(y \mid x) = \frac{p(y, x)}{p(x)} = \frac{p(x \mid y) p(y)}{p(x)} \propto p(x \mid y) $$
+
+  For Naive Bayes, we have to look up and multiply $D$ parameters for each of the $C$ classes, so the complexity is $O(DC)$.
+
+  For the full model, we have to convert $x$ into an array index (which is $O(D)$) for each of the $C$ classes, so the complexity is $O(DC)$ again.
 \end{solution}
 
 
@@ -136,6 +153,63 @@ For each of the six trained HMMs, find the max-probability state sequence for ea
 
 Show your results on the 6 files. (Copy-pasting the results of under the "Part A" heading of \texttt{HMM.ipynb} suffices.)
 \begin{solution}
+  \href{https://drive.google.com/file/d/1CgGDvZ95ua7JDxOb4WkoU3T8oF0RCYgW/view?usp=sharing}{Colab notebook}
+
+  \begin{verbatim}
+File #0:
+Emission Sequence             Max Probability State Sequence
+######################################################################
+25421                         31033                         
+01232367534                   22222100310                   
+5452674261527433              1031003103222222              
+7226213164512267255           1310331000033100310           
+0247120602352051010255241     2222222222222222222222103     
+
+File #1:
+Emission Sequence             Max Probability State Sequence
+######################################################################
+77550                         22222                         
+7224523677                    2222221000                    
+505767442426747               222100003310031               
+72134131645536112267          10310310000310333100          
+4733667771450051060253041     2221000003222223103222223     
+
+File #2:
+Emission Sequence             Max Probability State Sequence
+######################################################################
+60622                         11111                         
+4687981156                    2100202111                    
+815833657775062               021011111111111               
+21310222515963505015          02020111111111111021          
+6503199452571274006320025     1110202111111102021110211     
+
+File #3:
+Emission Sequence             Max Probability State Sequence
+######################################################################
+13661                         00021                         
+2102213421                    3131310213                    
+166066262165133               133333133133100               
+53164662112162634156          20000021313131002133          
+1523541005123230226306256     1310021333133133313133133     
+
+File #4:
+Emission Sequence             Max Probability State Sequence
+######################################################################
+23664                         01124                         
+3630535602                    0111201112                    
+350201162150142               011244012441112               
+00214005402015146362          11201112412444011112          
+2111266524665143562534450     2012012424124011112411124     
+
+File #5:
+Emission Sequence             Max Probability State Sequence
+######################################################################
+68535                         10111                         
+4546566636                    1111111111                    
+638436858181213               110111010000011               
+13240338308444514688          00010000000111111100          
+0111664434441382533632626     2111111111111100111110101
+  \end{verbatim}
 \end{solution}
 \indent\problem[17] % indent for consistency
 For each of the six trained HMMs, find the probabilities of emitting the five input sequences at the end of the corresponding file. To complete this problem, you will have to implement the Forward algorithm and the Backward algorithm. You may assume that the initial state is randomly selected along a uniform distribution. Again, write your implementation well, as we will be reusing it in a later problem. \\
@@ -159,6 +233,119 @@ Dataset & Emission Sequence & Max-probability State Sequence & Probability of Se
 \end{center}
 
 \begin{solution}
+  Forward algorithm:
+  \begin{verbatim}
+File #0:
+Emission Sequence             Probability of Emitting Sequence
+######################################################################
+25421                         4.537e-05 
+01232367534                   1.620e-11 
+5452674261527433              4.348e-15 
+7226213164512267255           4.739e-18 
+0247120602352051010255241     9.365e-24 
+
+File #1:
+Emission Sequence             Probability of Emitting Sequence
+######################################################################
+77550                         1.181e-04 
+7224523677                    2.033e-09 
+505767442426747               2.477e-13 
+72134131645536112267          8.871e-20 
+4733667771450051060253041     3.740e-24 
+
+File #2:
+Emission Sequence             Probability of Emitting Sequence
+######################################################################
+60622                         2.088e-05 
+4687981156                    5.181e-11 
+815833657775062               3.315e-15 
+21310222515963505015          5.126e-20 
+6503199452571274006320025     1.297e-25 
+
+File #3:
+Emission Sequence             Probability of Emitting Sequence
+######################################################################
+13661                         1.732e-04 
+2102213421                    8.285e-09 
+166066262165133               1.642e-12 
+53164662112162634156          1.063e-16 
+1523541005123230226306256     4.535e-22 
+
+File #4:
+Emission Sequence             Probability of Emitting Sequence
+######################################################################
+23664                         1.141e-04 
+3630535602                    4.326e-09 
+350201162150142               9.793e-14 
+00214005402015146362          4.740e-18 
+2111266524665143562534450     5.618e-22 
+
+File #5:
+Emission Sequence             Probability of Emitting Sequence
+######################################################################
+68535                         1.322e-05 
+4546566636                    2.867e-09 
+638436858181213               4.323e-14 
+13240338308444514688          4.629e-18 
+0111664434441382533632626     1.440e-22 
+  \end{verbatim}
+
+  Backward algorithm:
+  \begin{verbatim}
+File #0:
+Emission Sequence             Probability of Emitting Sequence
+######################################################################
+25421                         4.537e-05 
+01232367534                   1.620e-11 
+5452674261527433              4.348e-15 
+7226213164512267255           4.739e-18 
+0247120602352051010255241     9.365e-24 
+
+File #1:
+Emission Sequence             Probability of Emitting Sequence
+######################################################################
+77550                         1.181e-04 
+7224523677                    2.033e-09 
+505767442426747               2.477e-13 
+72134131645536112267          8.871e-20 
+4733667771450051060253041     3.740e-24 
+
+File #2:
+Emission Sequence             Probability of Emitting Sequence
+######################################################################
+60622                         2.088e-05 
+4687981156                    5.181e-11 
+815833657775062               3.315e-15 
+21310222515963505015          5.126e-20 
+6503199452571274006320025     1.297e-25 
+
+File #3:
+Emission Sequence             Probability of Emitting Sequence
+######################################################################
+13661                         1.732e-04 
+2102213421                    8.285e-09 
+166066262165133               1.642e-12 
+53164662112162634156          1.063e-16 
+1523541005123230226306256     4.535e-22 
+
+File #4:
+Emission Sequence             Probability of Emitting Sequence
+######################################################################
+23664                         1.141e-04 
+3630535602                    4.326e-09 
+350201162150142               9.793e-14 
+00214005402015146362          4.740e-18 
+2111266524665143562534450     5.618e-22 
+
+File #5:
+Emission Sequence             Probability of Emitting Sequence
+######################################################################
+68535                         1.322e-05 
+4546566636                    2.867e-09 
+638436858181213               4.323e-14 
+13240338308444514688          4.629e-18 
+0111664434441382533632626     1.440e-22 
+  \end{verbatim}
 \end{solution}
 
 \subsection{HMM Training}
@@ -191,6 +378,24 @@ $\begin{pmatrix}
 \medskip
 
 \begin{solution}
+  Our outputs match the matrices given.
+
+  \begin{verbatim}
+Transition Matrix:
+######################################################################
+2.833e-01   4.714e-01   1.310e-01   1.143e-01   
+2.321e-01   3.810e-01   2.940e-01   9.284e-02   
+1.040e-01   9.760e-02   3.696e-01   4.288e-01   
+1.883e-01   9.903e-02   3.052e-01   4.075e-01   
+
+
+Observation Matrix:  
+######################################################################
+1.486e-01   2.288e-01   1.533e-01   1.179e-01   4.717e-02   5.189e-02   2.830e-02   1.297e-01   9.198e-02   2.358e-03   
+1.062e-01   9.653e-03   1.931e-02   3.089e-02   1.699e-01   4.633e-02   1.409e-01   2.394e-01   1.371e-01   1.004e-01   
+1.194e-01   4.299e-02   6.529e-02   9.076e-02   1.768e-01   2.022e-01   4.618e-02   5.096e-02   7.803e-02   1.274e-01   
+1.694e-01   3.871e-02   1.468e-01   1.823e-01   4.839e-02   6.290e-02   9.032e-02   2.581e-02   2.161e-01   1.935e-02
+  \end{verbatim}
 \end{solution}
 \indent\problem[15] % indent for consistency
 Now suppose that Ron has a third roommate who is also interested in how Ron's mood affects his music selection. This roommate is lazier than the other one, so he simply steals the first roommate's data. Unfortunately, he only manages to grab half the data, namely, Ron's choice of music for each of the 2190 days.
@@ -268,11 +473,40 @@ $\begin{pmatrix}
 Please use these outputs to check your code.
 
 \begin{solution}
+  Our outputs match the matrices given.
+  \begin{verbatim}
+Transition Matrix:
+######################################################################
+4.345e-01   1.559e-01   9.612e-02   3.134e-01   
+5.904e-15   2.996e-01   7.004e-01   1.328e-11   
+5.219e-01   3.828e-18   2.259e-01   2.522e-01   
+5.016e-03   3.679e-01   7.971e-03   6.191e-01   
+
+
+Observation Matrix:  
+######################################################################
+2.235e-01   8.353e-09   7.603e-02   9.263e-02   2.315e-02   1.023e-02   1.273e-01   3.294e-01   1.288e-10   1.177e-01   
+2.260e-01   3.339e-05   7.427e-14   2.039e-01   3.226e-02   1.151e-01   1.575e-01   3.954e-30   8.256e-02   1.828e-01   
+3.403e-02   1.351e-01   1.900e-01   5.006e-02   2.247e-01   2.150e-05   6.462e-02   2.926e-02   2.723e-01   3.988e-65   
+8.931e-02   1.173e-01   1.035e-01   9.344e-02   1.505e-01   2.098e-01   9.588e-07   7.679e-02   1.594e-01   1.312e-07
+  \end{verbatim}
 \end{solution}
 
 \problem[5] How do the transition and emission matrices from 2C and 2D compare? Which do you think provides a more accurate representation of Ron's moods and how they affect his music choices? Justify your answer. Suggest one way that we may be able to improve the method (supervised or unsupervised) that you believe produces the less accurate representation. 
 
 \begin{solution}
+  The unsupervised algorithm produced sparser matrices, where some of the entries are nearly 0 in both the transition and observation matrices.
+
+  By looking at the observation matrices and the genre map, we saw that the supervised model produces a distribution over genres that makes intuitive sense to us (e.g. angry -> rap, metal, rock; happy -> pop, house, rock).
+  The unsupervised model seemed to predict unrelated genres for a given state (for example rock, folk, and classical being the most likely from state 1).
+
+  \begin{tabular}{c c}
+    \includegraphics[width=0.45\textwidth]{images/2e_supervised.png} &
+    \includegraphics[width=0.45\textwidth]{images/2e_unsupervised.png} \\
+    Supervised Model & Unsupervised Model
+  \end{tabular}
+
+  For improving the unsupervised model, we can gather more data, increase the number of epochs, or try more/fewer hidden states.
 \end{solution}
 
 \subsection{Sequence Generation}
@@ -280,6 +514,61 @@ Hidden Markov Models fall under the umbrella of generative models and therefore 
 \problem[5] Load the trained HMMs from the files titled \texttt{sequence_data0.txt}, $\ldots$ , \texttt{sequence_data5.txt}. Use the six models to probabilistically generate five sequences of emissions from each model, each of length 20. Show your results. 
 
 \begin{solution}
+  \begin{verbatim}
+File #0:
+Generated Emission            
+######################################################################
+77420454341752715750          
+72457572640525742077          
+77646442257647445465          
+65244754502514721023          
+62772345127414575542          
+
+File #1:
+Generated Emission            
+######################################################################
+77420454341752715750          
+72457572640525742077          
+77646442257647445465          
+65244754502514721023          
+62772345127414575542          
+
+File #2:
+Generated Emission            
+######################################################################
+99540565323972926751          
+72568781750637954077          
+87836321467659227365          
+75123966712525932224          
+73993455259226683524          
+
+File #3:
+Generated Emission            
+######################################################################
+66330354312651605630          
+61256660620512622066          
+36624310326546115244          
+53012653511322620012          
+41663243236113433312          
+
+File #4:
+Generated Emission            
+######################################################################
+66320463212652606630          
+62465660630514622066          
+66535310256636115344          
+53012654502324621122          
+32662232136214462312          
+
+File #5:
+Generated Emission            
+######################################################################
+88341483323863806630          
+63468680640635834166          
+88836320456648115354          
+63022865512334821234          
+62883443238214483314          
+  \end{verbatim}
 \end{solution}
 
 \subsection{Visualization \& Analysis}
@@ -291,18 +580,34 @@ Answer the following problems in the context of the visualizations in the notebo
 \indent\problem[3] % indent for consistency
 What can you say about the sparsity of the trained $A$ and $O$ matrices? How does this sparsity affect the transition and observation behaviour at each state?
 \begin{solution}
+  
+  \includegraphics[width=0.45\textwidth]{images/sparsity_a.png}
+  \includegraphics[width=0.45\textwidth]{images/sparsity_o.png}
+
+  They're very sparse.
+  This means that a given state is fairly certain for what observation it will produce and what state it will transition to.
 \end{solution}
 
 \indent\problem[5] % indent for consistency
 How do the sample emission sentences from the HMM change as the number of hidden states is increased? What happens in the special case where there is only one hidden state? In general, when the number of hidden states is unknown while training an HMM for a fixed observation set, can we increase the training data likelihood by allowing more hidden states?
 
 \begin{solution}
+  None of the sentences make any sense, but the ones with more hidden states are able to make 2-3 word phrases that sound plausible.
+
+  The 1 state model just randomly selects words according to their frequency in the text.
+
+  In general, adding more hidden states will increase the training data likelihood because adding states can capture more complex patterns in the training data.
 \end{solution}
 
 
 \indent\problem[5] % indent for consistency
 Pick a state that you find semantically meaningful, and analyze this state and its wordcloud. What does this state represent? How does this state differ from the other states? Back up your claim with a few key words from the wordcloud.
 \begin{solution}
+  
+  \includegraphics[width=0.3\textwidth]{images/word_cloud.png}
+
+  The biggest words here are "within", "without", and "throughout", which clearly would fall in similar places in a sentence, and suggest that this state represents a relationship of how/when/where things occur.
+  The other states didn't seem to have quite as coherent a meaning, though there were some patterns in them as well.
 \end{solution}
 
 \end{document}
